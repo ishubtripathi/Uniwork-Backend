@@ -25,7 +25,6 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log('MongoDB connected'))
 .catch(err => console.error('MongoDB connection error:', err));
 
-
 // Add a route for the root URL
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html')); // Serve your HTML file here
@@ -81,10 +80,14 @@ app.get('/api/work/:tokenId', async (req, res) => {
         const work = await Work.findOne({ tokenId });
 
         if (work) {
+            // Convert file buffer to base64 string for frontend display
+            const fileBase64 = work.file.toString('base64');
+
             res.json({
                 ownerName: work.ownerName,
                 tokenId: work.tokenId,
                 originalName: work.originalName,
+                file: fileBase64, // Include the base64 string of the file
             });
         } else {
             res.status(404).json({ message: 'Work not found' });

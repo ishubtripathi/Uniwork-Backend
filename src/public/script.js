@@ -1,20 +1,46 @@
-document.getElementById('uploadForm').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Prevent the form from submitting normally
-    const formData = new FormData(this);
+document.getElementById('upload-form').addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent default form submission
+
+    const formData = new FormData(event.target); // Create FormData object
 
     try {
         const response = await fetch('/api/upload', {
             method: 'POST',
-            body: formData
+            body: formData,
         });
 
+        const result = await response.json();
+
+        if (response.ok) {
+            alert('File uploaded successfully! Token ID: ' + result.tokenId);
+        } else {
+            alert('Upload failed: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        alert('An error occurred during the upload.');
+    }
+});
+
+// Retrieve Uploaded Work
+document.getElementById('retrieveButton').addEventListener('click', async () => {
+    const tokenId = document.getElementById('tokenIdInput').value;
+
+    try {
+        const response = await fetch(`/api/work/${tokenId}`);
+
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+            throw new Error('Work not found');
         }
 
-        const data = await response.json();
-        document.getElementById('result').innerHTML = `<p>${data.message}</p><p>Your NFT Token ID: ${data.tokenId}</p>`;
+        const work = await response.json();
+        const img = document.getElementById('uploadedImage');
+        img.src = `data:image/png;base64,${work.file}`; // Set image source to base64 data
+        img.alt = work.originalName;
+
+        document.getElementById('image-container').style.display = 'block'; // Show image container
     } catch (error) {
-        document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+        console.error('Error retrieving work:', error);
+        alert('Error retrieving work: ' + error.message);
     }
 });
